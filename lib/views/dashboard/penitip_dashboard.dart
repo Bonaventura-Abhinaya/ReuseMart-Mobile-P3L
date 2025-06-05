@@ -41,15 +41,15 @@ class _PenitipDashboardState extends State<PenitipDashboard> {
 
   Future<void> kirimFcmTokenKeLaravel(int penitipId) async {
     final token = await FirebaseMessaging.instance.getToken();
-    if (token != null) {
+    try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/penitip/update-fcm-token'),
+        Uri.parse('http://192.168.115.68:8000/api/penitip/update-fcm-token'),
         headers: {'Content-Type': 'application/json'},
         body: '{"id": $penitipId, "token": "$token"}',
       );
       print("✅ Kirim token respon: ${response.body}");
-    } else {
-      print("❌ Tidak dapat token FCM");
+    } catch (e) {
+      print("❌ Gagal kirim token: $e");
     }
   }
 

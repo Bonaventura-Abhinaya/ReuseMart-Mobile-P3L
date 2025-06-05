@@ -14,22 +14,35 @@ import 'views/dashboard/pembeli_dashboard.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+  } catch (e) {
+    print("⚠️ Error saat init Firebase di background: $e");
+  }
+
   print("🔕 [TERMINATED] Notifikasi diterima: ${message.messageId}");
 }
 
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Handle background
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+  } catch (e) {
+    print("⚠️ Firebase sudah di-initialize sebelumnya: $e");
+  }
+
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Ambil token FCM
   final fcmToken = await FirebaseMessaging.instance.getToken();
   print("🔑 FCM Token: $fcmToken");
 
-  // Handle foreground
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     if (message.notification != null) {
       print("📬 [FOREGROUND] Judul: ${message.notification!.title}");
@@ -39,6 +52,8 @@ void main() async {
 
   runApp(const ReuseMartApp());
 }
+
+
 
 class ReuseMartApp extends StatelessWidget {
   const ReuseMartApp({super.key});

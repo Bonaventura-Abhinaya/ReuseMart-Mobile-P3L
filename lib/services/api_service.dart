@@ -5,10 +5,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 
 class ApiService {
-  static const String baseUrl = "http://192.168.1.3:8000";
+  static const String baseUrl = "http://192.168.115.68:8000";
 
   // 🔐 LOGIN UNIVERSAL
-  static Future<Map<String, dynamic>> login(String username, String password) async {
+   static Future<Map<String, dynamic>> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/login'),
       headers: {'Accept': 'application/json'},
@@ -41,6 +41,19 @@ class ApiService {
         );
       }
 
+      // ✅ KIRIM FCM TOKEN JIKA PEMBELI
+      if (data['role'] == 'pembeli') {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        await http.post(
+          Uri.parse('$baseUrl/api/pembeli/update-fcm-token'),
+          headers: {'Accept': 'application/json'},
+          body: {
+            'id': userData['id'].toString(),
+            'token': fcmToken ?? '',
+          },
+        );
+      }
+
       return {
         'role': data['role'],
         'data': userData,
@@ -50,6 +63,7 @@ class ApiService {
       throw Exception(data['message'] ?? 'Login gagal.');
     }
   }
+
 
   // 🔓 LOGOUT
   static Future<void> logout() async {
@@ -191,6 +205,27 @@ static Future<List<Map<String, dynamic>>> fetchNotifikasiPenitip(int penitipId) 
     throw Exception("Gagal memuat notifikasi");
   }
 }
+
+  // 📄 Profil Pembeli
+  static Future<Map<String, dynamic>> fetchProfilPembeli(int id) async {
+    final res = await http.get(Uri.parse('$baseUrl/api/pembeli/$id/profil'));
+    if (res.statusCode == 200) {
+      return Map<String, dynamic>.from(json.decode(res.body));
+    } else {
+      throw Exception("Gagal memuat profil pembeli");
+    }
+  }
+
+  // 🔔 Notifikasi Pembeli
+  static Future<List<Map<String, dynamic>>> fetchNotifikasiPembeli(int pembeliId) async {
+    final res = await http.get(Uri.parse('$baseUrl/api/pembeli/$pembeliId/notifikasi'));
+    if (res.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(json.decode(res.body));
+    } else {
+      throw Exception("Gagal memuat notifikasi");
+    }
+  }
+
 
   // 🔓 CLEAR LOGIN SESSION (pakai di main.dart untuk reset manual)
   // static Future<void> clearLoginSession() async {

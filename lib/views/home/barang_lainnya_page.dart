@@ -28,19 +28,27 @@ class _BarangLainnyaPageState extends State<BarangLainnyaPage> {
   }
 
   Future<void> fetchBarang() async {
+    if (!mounted) return;
     setState(() => isLoading = true);
+
     try {
       final fetched = await ApiService.fetchBarangPaginated(page: currentPage);
+      if (!mounted) return;
       setState(() {
         barangList = fetched;
         isLastPage = fetched.length < 10;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
     } finally {
+      if (!mounted) return;
       setState(() => isLoading = false);
     }
   }
+
 
   void nextPage() {
     if (!isLastPage) {
