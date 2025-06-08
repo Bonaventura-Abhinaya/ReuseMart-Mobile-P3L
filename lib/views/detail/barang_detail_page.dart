@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/api_service.dart';
-import 'barang_detail_page.dart';
 import '../kategori/barang_by_kategori_page.dart';
 import 'package:intl/intl.dart';
 
@@ -26,7 +25,12 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
   @override
   void initState() {
     super.initState();
+
     barangFuture = ApiService.fetchDetailBarang(widget.id);
+
+    rekomendasiFuture = ApiService.fetchDetailBarang(widget.id).then((barang) {
+      return ApiService.fetchRekomendasi(barang['kategori_id'], barang['id']);
+    });
   }
 
   void setMainImage(String url) {
@@ -78,6 +82,7 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                 SizedBox(
                   height: 80,
                   child: ListView.builder(
+                    shrinkWrap: true,
                     scrollDirection: Axis.horizontal,
                     itemCount: fotoList.length,
                     itemBuilder: (context, index) {
@@ -95,6 +100,7 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                           ),
                           child: CachedNetworkImage(
                             imageUrl: url,
+                            errorWidget: (context, url, error) => const Icon(Icons.error),
                             width: 80,
                             fit: BoxFit.cover,
                           ),

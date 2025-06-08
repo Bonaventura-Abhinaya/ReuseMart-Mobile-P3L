@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'firebase_options.dart';
 import 'views/home/home_guest_page.dart';
@@ -11,6 +12,7 @@ import 'views/dashboard/hunter_dashboard.dart';
 import 'views/dashboard/kurir_dashboard.dart';
 import 'views/dashboard/penitip_dashboard.dart';
 import 'views/dashboard/pembeli_dashboard.dart';
+import 'views/dashboard/pembeli_main_page.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -20,7 +22,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await initializeDateFormatting('id_ID', null);
 
   // Handle background
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -49,7 +53,7 @@ class ReuseMartApp extends StatelessWidget {
 
     switch (role) {
       case 'pembeli':
-        return const PembeliDashboard();
+        return const PembeliMainPage();
       case 'penitip':
         return const PenitipDashboard();
       case 'hunter':
@@ -86,7 +90,7 @@ class ReuseMartApp extends StatelessWidget {
       routes: {
         '/barang-lainnya': (context) => const BarangLainnyaPage(),
         '/login': (context) => const LoginPage(),
-        '/dashboardPembeli': (context) => const PembeliDashboard(),
+        '/mainPembeli': (context) => const PembeliMainPage(),
         '/dashboardPenitip': (context) => const PenitipDashboard(),
         '/dashboardHunter': (context) => const HunterDashboard(),
         '/dashboardKurir': (context) => const KurirDashboard(),
