@@ -5,7 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 
 class ApiService {
-  static const String baseUrl = "http://192.168.115.68:8000";
+  static const String baseUrl = "http://192.168.1.10:8000";
 
   // 🔐 LOGIN UNIVERSAL
    static Future<Map<String, dynamic>> login(String username, String password) async {
@@ -155,6 +155,7 @@ class ApiService {
       throw Exception("Gagal melakukan pencarian");
     }
   }
+  
 
   // Profil Penitip
   static Future<Map<String, dynamic>> fetchProfilPenitip(int id) async {
@@ -209,12 +210,16 @@ static Future<List<Map<String, dynamic>>> fetchNotifikasiPenitip(int penitipId) 
   // 📄 Profil Pembeli
   static Future<Map<String, dynamic>> fetchProfilPembeli(int id) async {
     final res = await http.get(Uri.parse('$baseUrl/api/pembeli/$id/profil'));
-    if (res.statusCode == 200) {
-      return Map<String, dynamic>.from(json.decode(res.body));
-    } else {
-      throw Exception("Gagal memuat profil pembeli");
+    print("🔍 GET: $baseUrl/api/pembeli/$id/profil");
+  print("📡 Status: ${res.statusCode}");
+  print("📄 Body: ${res.body}");
+      if (res.statusCode == 200) {
+        return Map<String, dynamic>.from(json.decode(res.body));
+      } else {
+        throw Exception("Gagal memuat profil pembeli");
+      }
     }
-  }
+
 
   // 🔔 Notifikasi Pembeli
   static Future<List<Map<String, dynamic>>> fetchNotifikasiPembeli(int pembeliId) async {
@@ -223,6 +228,27 @@ static Future<List<Map<String, dynamic>>> fetchNotifikasiPenitip(int penitipId) 
       return List<Map<String, dynamic>>.from(json.decode(res.body));
     } else {
       throw Exception("Gagal memuat notifikasi");
+    }
+  }
+
+  //histori pembeli
+  static Future<List<Map<String, dynamic>>> fetchRiwayatTransaksi(int pembeliId) async {
+    final response = await http.get(Uri.parse('$baseUrl/api/pembeli/$pembeliId/riwayat-transaksi'));
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(json.decode(response.body));
+    } else {
+      throw Exception('Gagal memuat riwayat transaksi');
+    }
+  }
+
+  //histori detail pembeli
+  static Future<Map<String, dynamic>> fetchDetailTransaksi(int transaksiId) async {
+    final res = await http.get(Uri.parse('$baseUrl/api/pembeli/transaksi/$transaksiId'));
+    if (res.statusCode == 200) {
+      return Map<String, dynamic>.from(json.decode(res.body));
+    } else {
+      throw Exception("Gagal mengambil detail transaksi");
     }
   }
 

@@ -43,7 +43,7 @@ class _PenitipDashboardState extends State<PenitipDashboard> {
     final token = await FirebaseMessaging.instance.getToken();
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.115.68:8000/api/penitip/update-fcm-token'),
+        Uri.parse('ApiService.baseUrl/api/penitip/update-fcm-token'),
         headers: {'Content-Type': 'application/json'},
         body: '{"id": $penitipId, "token": "$token"}',
       );
