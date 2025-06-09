@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/api_service.dart';
-import 'barang_detail_page.dart';
 import '../kategori/barang_by_kategori_page.dart';
 import 'package:intl/intl.dart';
 
@@ -18,6 +17,7 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
   late Future<Map<String, dynamic>> barangFuture;
   late Future<List<Map<String, dynamic>>> rekomendasiFuture;
   String? mainImage;
+
   String formatRupiah(dynamic angka) {
     final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
     return formatter.format(angka);
@@ -26,7 +26,12 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
   @override
   void initState() {
     super.initState();
+
     barangFuture = ApiService.fetchDetailBarang(widget.id);
+
+    rekomendasiFuture = ApiService.fetchDetailBarang(widget.id).then((barang) {
+      return ApiService.fetchRekomendasi(barang['kategori_id'], barang['id']);
+    });
   }
 
   void setMainImage(String url) {
@@ -57,7 +62,6 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
 
           if (mainImage == null) mainImage = fotoList.first;
 
-          // Fetch rekomendasi, exclude current ID
           rekomendasiFuture = ApiService.fetchRekomendasi(barang['kategori_id'], barang['id']);
 
           return SingleChildScrollView(
@@ -65,7 +69,6 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Gambar Utama
                 CachedNetworkImage(
                   imageUrl: mainImage!,
                   width: double.infinity,
@@ -74,10 +77,10 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                 ),
                 const SizedBox(height: 12),
 
-                // Galeri Thumbnail
                 SizedBox(
                   height: 80,
                   child: ListView.builder(
+                    shrinkWrap: true,
                     scrollDirection: Axis.horizontal,
                     itemCount: fotoList.length,
                     itemBuilder: (context, index) {
@@ -95,6 +98,7 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                           ),
                           child: CachedNetworkImage(
                             imageUrl: url,
+                            errorWidget: (context, url, error) => const Icon(Icons.error),
                             width: 80,
                             fit: BoxFit.cover,
                           ),
@@ -105,13 +109,11 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                 ),
                 const SizedBox(height: 24),
 
-                // Informasi Barang
                 Text(barang['nama'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text(formatRupiah(barang['harga']),style: const TextStyle(fontSize: 18, color: Colors.orange),),
+                Text(formatRupiah(barang['harga']), style: const TextStyle(fontSize: 18, color: Colors.orange)),
                 const SizedBox(height: 12),
 
-                // Kategori bisa diklik
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -142,7 +144,41 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                 Text(barang['deskripsi']),
                 const SizedBox(height: 12),
 
-                Text("Penitip: ${barang['penitip']['username']}"),
+                // ⬇️ Penitip + Badge Top Seller
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text("Penitip: "),
+                    Text(
+                      barang['penitip']['username'],
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 6),
+                    if (barang['penitip']['top_seller'] == true)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade700,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.star, color: Colors.white, size: 14),
+                            SizedBox(width: 4),
+                            Text(
+                              "Top Seller",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+
                 if (barang['penitip']['rating'] > 0)
                   Text("Rating: ${barang['penitip']['rating']} / 5",
                       style: const TextStyle(color: Colors.yellow, fontWeight: FontWeight.w500))
@@ -155,7 +191,6 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
 
                 const SizedBox(height: 32),
 
-                // Rekomendasi
                 Text("Barang Serupa dari Kategori ${barang['kategori']}",
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
@@ -212,7 +247,8 @@ class _BarangDetailPageState extends State<BarangDetailPage> {
                                     children: [
                                       Text(item['nama'], style: const TextStyle(fontSize: 13)),
                                       Text(formatRupiah(item['harga']),
-                                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),)
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold, color: Colors.orange)),
                                     ],
                                   ),
                                 ),

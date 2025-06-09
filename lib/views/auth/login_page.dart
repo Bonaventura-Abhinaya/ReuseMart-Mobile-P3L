@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
       // arahkan ke dashboard
       switch (role) {
         case 'pembeli':
-          Navigator.pushReplacementNamed(context, "/dashboardPembeli");
+          Navigator.pushReplacementNamed(context, "/mainPembeli");
           break;
         case 'penitip':
           Navigator.pushReplacementNamed(context, "/dashboardPenitip");

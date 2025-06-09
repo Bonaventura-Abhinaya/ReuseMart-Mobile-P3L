@@ -3,27 +3,25 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/api_service.dart';
 import '../detail/barang_detail_page.dart';
 import '../kategori/barang_by_kategori_page.dart';
-import '../auth/login_page.dart';
+import 'barang_lainnya_page.dart';
 import 'package:intl/intl.dart';
+import 'hasil_pencarian_page.dart';
 
-class HomeGuestPage extends StatefulWidget {
-  const HomeGuestPage({super.key});
+
+class BarangTerbaruSection extends StatefulWidget {
+  const BarangTerbaruSection({super.key});
 
   @override
-  State<HomeGuestPage> createState() => _HomeGuestPageState();
+  State<BarangTerbaruSection> createState() => _BarangTerbaruSectionState();
 }
 
-class _HomeGuestPageState extends State<HomeGuestPage> {
+class _BarangTerbaruSectionState extends State<BarangTerbaruSection> {
   late Future<List<Map<String, dynamic>>> kategoriFuture;
   late Future<List<Map<String, dynamic>>> barangTerbaruFuture;
 
   TextEditingController searchController = TextEditingController();
   Future<List<Map<String, dynamic>>>? searchResultFuture;
   String? currentQuery;
-  String formatRupiah(dynamic angka) {
-    final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
-    return formatter.format(angka);
-  }
 
   @override
   void initState() {
@@ -32,24 +30,16 @@ class _HomeGuestPageState extends State<HomeGuestPage> {
     barangTerbaruFuture = ApiService.fetchBarangTerbaru();
   }
 
+  String formatRupiah(dynamic angka) {
+    final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
+    return formatter.format(angka);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("ReuseMart", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green,
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-              );
-            },
-            child: const Text("Login", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text("Beranda"),
+      backgroundColor: Colors.green,),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -63,15 +53,19 @@ class _HomeGuestPageState extends State<HomeGuestPage> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             ),
             onSubmitted: (value) {
-              setState(() {
-                currentQuery = value;
-                searchResultFuture = ApiService.searchBarang(value);
-              });
+              if (value.trim().isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => HasilPencarianPage(keyword: value.trim()),
+                  ),
+                );
+              }
             },
           ),
           const SizedBox(height: 16),
 
-          // 🔷 KATEGORI
+          // 📂 KATEGORI
           const Text("Kategori", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           FutureBuilder<List<Map<String, dynamic>>>(
@@ -121,7 +115,7 @@ class _HomeGuestPageState extends State<HomeGuestPage> {
 
           const SizedBox(height: 24),
 
-          // 🔄 PRODUK TERBARU ATAU HASIL CARI
+          // 🛒 PRODUK TERBARU / PENCARIAN
           Text(
             currentQuery == null ? "Produk Terbaru" : "Hasil Pencarian untuk \"$currentQuery\"",
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -141,6 +135,7 @@ class _HomeGuestPageState extends State<HomeGuestPage> {
               if (barangList.isEmpty) {
                 return const Text("Tidak ditemukan barang yang cocok.");
               }
+
               return Column(
                 children: barangList.map((barang) {
                   return GestureDetector(
@@ -182,11 +177,14 @@ class _HomeGuestPageState extends State<HomeGuestPage> {
 
           const SizedBox(height: 24),
 
-          // 🔻 TOMBOL LIHAT PRODUK LAINNYA
+          // 🔽 TOMBOL LIHAT PRODUK LAINNYA
           Center(
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/barang-lainnya');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BarangLainnyaPage()),
+                );
               },
               child: const Text("Lihat Barang Lainnya"),
             ),

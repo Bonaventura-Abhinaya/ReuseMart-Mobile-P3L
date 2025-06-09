@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../models/merchandise_model.dart';
 
 
 class ApiService {
-  static const String baseUrl = "http://192.168.1.3:8000";
+  static const String baseUrl = "http://192.168.1.10:8000";
 
   // 🔐 LOGIN UNIVERSAL
-  static Future<Map<String, dynamic>> login(String username, String password) async {
+   static Future<Map<String, dynamic>> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/login'),
       headers: {'Accept': 'application/json'},
@@ -41,6 +42,19 @@ class ApiService {
         );
       }
 
+      // ✅ KIRIM FCM TOKEN JIKA PEMBELI
+      if (data['role'] == 'pembeli') {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        await http.post(
+          Uri.parse('$baseUrl/api/pembeli/update-fcm-token'),
+          headers: {'Accept': 'application/json'},
+          body: {
+            'id': userData['id'].toString(),
+            'token': fcmToken ?? '',
+          },
+        );
+      }
+
       return {
         'role': data['role'],
         'data': userData,
@@ -50,6 +64,7 @@ class ApiService {
       throw Exception(data['message'] ?? 'Login gagal.');
     }
   }
+
 
   // 🔓 LOGOUT
   static Future<void> logout() async {
@@ -141,6 +156,7 @@ class ApiService {
       throw Exception("Gagal melakukan pencarian");
     }
   }
+  
 
   // Profil Penitip
   static Future<Map<String, dynamic>> fetchProfilPenitip(int id) async {
@@ -191,6 +207,96 @@ static Future<List<Map<String, dynamic>>> fetchNotifikasiPenitip(int penitipId) 
     throw Exception("Gagal memuat notifikasi");
   }
 }
+
+  // 📄 Profil Pembeli
+  static Future<Map<String, dynamic>> fetchProfilPembeli(int id) async {
+    final res = await http.get(Uri.parse('$baseUrl/api/pembeli/$id/profil'));
+    print("🔍 GET: $baseUrl/api/pembeli/$id/profil");
+  print("📡 Status: ${res.statusCode}");
+  print("📄 Body: ${res.body}");
+      if (res.statusCode == 200) {
+        return Map<String, dynamic>.from(json.decode(res.body));
+      } else {
+        throw Exception("Gagal memuat profil pembeli");
+      }
+    }
+
+
+  // 🔔 Notifikasi Pembeli
+  static Future<List<Map<String, dynamic>>> fetchNotifikasiPembeli(int pembeliId) async {
+    final res = await http.get(Uri.parse('$baseUrl/api/pembeli/$pembeliId/notifikasi'));
+    if (res.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(json.decode(res.body));
+    } else {
+      throw Exception("Gagal memuat notifikasi");
+    }
+  }
+
+  //histori pembeli
+  static Future<List<Map<String, dynamic>>> fetchRiwayatTransaksi(int pembeliId) async {
+    final response = await http.get(Uri.parse('$baseUrl/api/pembeli/$pembeliId/riwayat-transaksi'));
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(json.decode(response.body));
+    } else {
+      throw Exception('Gagal memuat riwayat transaksi');
+    }
+  }
+
+  //histori detail pembeli
+  static Future<Map<String, dynamic>> fetchDetailTransaksi(int transaksiId) async {
+    final res = await http.get(Uri.parse('$baseUrl/api/pembeli/transaksi/$transaksiId'));
+    if (res.statusCode == 200) {
+      return Map<String, dynamic>.from(json.decode(res.body));
+    } else {
+      throw Exception("Gagal mengambil detail transaksi");
+    }
+  }
+
+  //merch
+  static Future<List<MerchandiseModel>> fetchMerchandise(int pembeliId) async {
+    final res = await http.get(Uri.parse('$baseUrl/api/merchandise?pembeli_id=$pembeliId'));
+
+    if (res.statusCode == 200) {
+      final List<dynamic> data = json.decode(res.body);
+      return data.map((json) => MerchandiseModel.fromJson(json)).toList();
+    } else {
+      throw Exception("Gagal mengambil data merchandise");
+    }
+  }
+
+  static Future<void> klaimMerchandise({
+    required int pembeliId,
+    required int merchandiseId,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/redeem-poin'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'pembeli_id': pembeliId,
+        'merchandise_id': merchandiseId,
+      }),
+    );
+
+    print('Status Code: ${response.statusCode}');
+    print('Response: ${response.body}');
+
+    if (response.statusCode != 200) {
+      throw Exception(json.decode(response.body)['message'] ?? 'Gagal klaim');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchRiwayatMerchandise(int pembeliId) async {
+    final response = await http.get(Uri.parse('$baseUrl/api/redeem-poin/$pembeliId'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as List;
+      return data.map((e) => Map<String, dynamic>.from(e)).toList();
+    } else {
+      throw Exception('Gagal mengambil riwayat merchandise');
+    }
+  }
+
 
   // 🔓 CLEAR LOGIN SESSION (pakai di main.dart untuk reset manual)
   // static Future<void> clearLoginSession() async {
