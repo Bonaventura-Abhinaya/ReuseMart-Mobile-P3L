@@ -208,6 +208,49 @@ class _PenitipDashboardState extends State<PenitipDashboard> {
               const SizedBox(height: 24),
             ],
 
+            // badge
+            if (profilPenitip != null && profilPenitip!['top_seller'] == true) ...[
+              Container(
+                margin: const EdgeInsets.only(top: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.yellow[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.emoji_events, color: Colors.amber, size: 40),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Selamat!",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            "Anda adalah Top Seller bulan ini. Ayo Jual Barang Lebih Banyak Lagi!! :)",
+                            style: TextStyle(color: Colors.black87),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.star, color: Colors.orangeAccent, size: 32),
+                  ],
+                ),
+              ),
+            ],
+
             // 📦 Barang Aktif
             const Text("Barang yang Sedang Dititipkan", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),

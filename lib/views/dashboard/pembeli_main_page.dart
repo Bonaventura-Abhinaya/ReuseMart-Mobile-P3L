@@ -4,6 +4,7 @@ import '../kategori/list_kategori_page.dart';
 import '../home/barang_terbaru_section.dart';
 import '../profil/profil_pembeli_page.dart';
 import '../transaksi/riwayat_transaksi_page.dart';
+import '../merchandise/merchandise_page.dart';
 
 class PembeliMainPage extends StatefulWidget {
   const PembeliMainPage({super.key});
@@ -15,13 +16,6 @@ class PembeliMainPage extends StatefulWidget {
 class _PembeliMainPageState extends State<PembeliMainPage> {
   int _selectedIndex = 0;
   int? pembeliId;
-
-  final List<Widget> _pages = [
-    const BarangTerbaruSection(),
-    const ListKategoriPage(),
-    const Placeholder(), // Transaksi
-    const Placeholder(), // Akun
-  ];
 
   @override
   void initState() {
@@ -38,7 +32,8 @@ class _PembeliMainPageState extends State<PembeliMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> displayedPages = [
+    // Ubah jadi mutable list (tanpa const)
+    final List<Widget> displayedPages = [
       const BarangTerbaruSection(),
       const ListKategoriPage(),
       pembeliId != null
@@ -49,25 +44,40 @@ class _PembeliMainPageState extends State<PembeliMainPage> {
           : const BelumLoginPage(),
     ];
 
+    final List<BottomNavigationBarItem> navItems = [
+      const BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+      const BottomNavigationBarItem(icon: Icon(Icons.category), label: "Kategori"),
+      const BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: "Transaksi"),
+      const BottomNavigationBarItem(icon: Icon(Icons.person), label: "Akun"),
+    ];
+
+    // ✅ Jika login, tambahkan Merch
+    if (pembeliId != null) {
+      displayedPages.add(const MerchandisePage());
+      navItems.add(const BottomNavigationBarItem(
+        icon: Icon(Icons.card_giftcard),
+        label: "Merch",
+      ));
+    }
+
+    // Pastikan selected index tidak lebih besar dari jumlah halaman
+    final int maxIndex = displayedPages.length - 1;
+    final int safeIndex = _selectedIndex > maxIndex ? 0 : _selectedIndex;
+
     return Scaffold(
-      body: displayedPages[_selectedIndex],
+      body: displayedPages[safeIndex],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
+        currentIndex: safeIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.category), label: "Kategori"),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: "Transaksi"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Akun"),
-        ],
+        type: BottomNavigationBarType.fixed,
+        items: navItems,
       ),
     );
   }
 }
 
-// Jika belum login
 class BelumLoginPage extends StatelessWidget {
   const BelumLoginPage({super.key});
 

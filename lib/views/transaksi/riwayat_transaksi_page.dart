@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
-import 'detail_transaksi_page.dart'; // ⬅️ Tambahkan ini untuk navigasi ke detail
+import 'detail_transaksi_page.dart';
 
 class RiwayatTransaksiPage extends StatelessWidget {
   final int pembeliId;
@@ -39,6 +39,7 @@ class RiwayatTransaksiPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Riwayat Transaksi"),
         backgroundColor: Colors.green,
+        automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: ApiService.fetchRiwayatTransaksi(pembeliId),
