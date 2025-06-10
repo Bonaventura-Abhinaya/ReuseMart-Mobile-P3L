@@ -4,7 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-
+import 'komisi_history_page.dart.dart';
 import '../../services/api_service.dart';
 import '../home/home_guest_page.dart';
 
@@ -88,9 +88,9 @@ class _HunterDashboardState extends State<HunterDashboard> {
         title: const Text("Dashboard Hunter"),
         backgroundColor: Colors.teal,
         actions: [
-          TextButton(
+          IconButton(
+            icon: const Icon(Icons.exit_to_app, color: Colors.white),
             onPressed: _confirmLogout,
-            child: const Text("Logout", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -98,62 +98,154 @@ class _HunterDashboardState extends State<HunterDashboard> {
           ? const Center(child: Text("Profil tidak ditemukan"))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 👤 Profil
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: profil!['profile_picture'] != null
-                            ? NetworkImage(profil!['profile_picture'])
-                            : const AssetImage("assets/default-user.png") as ImageProvider,
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Nama: ${profil!['username']}", style: const TextStyle(fontWeight: FontWeight.bold)),
-                            Text("📧 Email: ${profil!['email']}"),
-                            Text("📞 No. Telepon: ${profil!['no_telp'] ?? '-'}"),
-                            Text("🎁 Saldo Komisi: ${formatRupiah(profil!['saldo'] ?? 0)}"),
-                          ],
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Dashboard Hunter",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
                         ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                      ),
+                      const SizedBox(height: 20),
+                      
+                      // 👤 Profil Section
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 48,
+                            backgroundImage: profil!['profile_picture'] != null
+                                ? NetworkImage(profil!['profile_picture'])
+                                : const AssetImage("assets/default-user.png") as ImageProvider,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Username: ${profil!['username']}",
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.email, size: 16, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "Email: ${profil!['email']}",
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.phone, size: 16, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "No. Telepon: ${profil!['no_telp'] ?? '-'}",
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.account_balance_wallet, size: 16, color: Colors.grey),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "Jumlah Komisi: ${formatRupiah(profil!['saldo'] ?? 0)}",
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
 
-                  // 🔘 Aksi
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          // TODO: Navigasi ke edit profil
-                        },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                        child: const Text("Edit Profil"),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          // TODO: Navigasi ke laporan komisi atau transaksi
-                        },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                        child: const Text("Lihat Komisi"),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          // TODO: Navigasi ke notifikasi hunter jika ada
-                        },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                        child: const Text("Notifikasi"),
+                      // 🔘 Action Buttons
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              // TODO: Navigasi ke edit profil
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            child: const Text(
+                              "Edit Profil",
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // Di dalam HunterDashboard
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const KomisiHistoryPage()),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.attach_money, size: 16),
+                                SizedBox(width: 4),
+                                Text(
+                                  "Lihat History Komisi",
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
     );

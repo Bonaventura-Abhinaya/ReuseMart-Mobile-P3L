@@ -319,6 +319,20 @@ static Future<List<Map<String, dynamic>>> fetchNotifikasiPenitip(int penitipId) 
       throw Exception("Gagal memuat profil hunter");
     }
   }
+  // History Hunter
+  static Future<List<dynamic>> fetchHunterKomisiHistory(int hunterId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/hunter/$hunterId/komisi-history'),
+      headers: {'Accept': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      print("Response body: ${response.body}");
+      return jsonDecode(response.body)['data'];
+    } else {
+      throw Exception('Failed to load komisi history');
+    }
+  }
 
 
 
