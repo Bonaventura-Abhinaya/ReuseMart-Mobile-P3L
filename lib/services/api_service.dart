@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../models/merchandise_model.dart';
 
 
 class ApiService {
-  static const String baseUrl = "http://192.168.1.10:8000";
+  static const String baseUrl = "http://192.168.115.68:8000";
 
   // 🔐 LOGIN UNIVERSAL
    static Future<Map<String, dynamic>> login(String username, String password) async {
@@ -46,6 +47,19 @@ class ApiService {
         final fcmToken = await FirebaseMessaging.instance.getToken();
         await http.post(
           Uri.parse('$baseUrl/api/pembeli/update-fcm-token'),
+          headers: {'Accept': 'application/json'},
+          body: {
+            'id': userData['id'].toString(),
+            'token': fcmToken ?? '',
+          },
+        );
+      }
+
+      // ✅ KIRIM FCM TOKEN JIKA HUNTER
+      if (data['role'] == 'hunter') {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        await http.post(
+          Uri.parse('$baseUrl/api/hunter/update-fcm-token'),
           headers: {'Accept': 'application/json'},
           body: {
             'id': userData['id'].toString(),
@@ -251,6 +265,75 @@ static Future<List<Map<String, dynamic>>> fetchNotifikasiPenitip(int penitipId) 
       throw Exception("Gagal mengambil detail transaksi");
     }
   }
+
+  //merch
+  static Future<List<MerchandiseModel>> fetchMerchandise(int pembeliId) async {
+    final res = await http.get(Uri.parse('$baseUrl/api/merchandise?pembeli_id=$pembeliId'));
+
+    if (res.statusCode == 200) {
+      final List<dynamic> data = json.decode(res.body);
+      return data.map((json) => MerchandiseModel.fromJson(json)).toList();
+    } else {
+      throw Exception("Gagal mengambil data merchandise");
+    }
+  }
+
+  static Future<void> klaimMerchandise({
+    required int pembeliId,
+    required int merchandiseId,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/redeem-poin'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'pembeli_id': pembeliId,
+        'merchandise_id': merchandiseId,
+      }),
+    );
+
+    print('Status Code: ${response.statusCode}');
+    print('Response: ${response.body}');
+
+    if (response.statusCode != 200) {
+      throw Exception(json.decode(response.body)['message'] ?? 'Gagal klaim');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchRiwayatMerchandise(int pembeliId) async {
+    final response = await http.get(Uri.parse('$baseUrl/api/redeem-poin/$pembeliId'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as List;
+      return data.map((e) => Map<String, dynamic>.from(e)).toList();
+    } else {
+      throw Exception('Gagal mengambil riwayat merchandise');
+    }
+  }
+
+  // 📄 Profil Hunter
+  static Future<Map<String, dynamic>> fetchProfilHunter(int id) async {
+    final res = await http.get(Uri.parse('$baseUrl/api/hunter/$id/profil'));
+    if (res.statusCode == 200) {
+      return Map<String, dynamic>.from(json.decode(res.body));
+    } else {
+      throw Exception("Gagal memuat profil hunter");
+    }
+  }
+  // History Hunter
+  static Future<List<dynamic>> fetchHunterKomisiHistory(int hunterId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/hunter/$hunterId/komisi-history'),
+      headers: {'Accept': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      print("Response body: ${response.body}");
+      return jsonDecode(response.body)['data'];
+    } else {
+      throw Exception('Failed to load komisi history');
+    }
+  }
+
 
 
   // 🔓 CLEAR LOGIN SESSION (pakai di main.dart untuk reset manual)

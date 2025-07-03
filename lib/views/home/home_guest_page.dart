@@ -48,12 +48,6 @@ class _HomeGuestPageState extends State<HomeGuestPage> {
             },
             child: const Text("Login", style: TextStyle(color: Colors.white)),
           ),
-          TextButton(
-            onPressed: () {
-              // TODO: Navigasi ke register
-            },
-            child: const Text("Register", style: TextStyle(color: Colors.white)),
-          ),
         ],
       ),
       body: ListView(
